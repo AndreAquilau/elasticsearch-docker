@@ -4014,14 +4014,15 @@ const fs = require('fs');
 // Caminho do arquivo onde o objeto será escrito
 const filePath = 'data.json';
 const index = { "index" : { "_index" : "hits-" + 
-new Date(Date.now()).toLocaleDateString().substring(0,2) + "."+
-new Date(Date.now()).toLocaleDateString().substring(3,5) + "."+
-new Date(Date.now()).toLocaleDateString().substring(6,10),
+new Date(Date.now()).toLocaleDateString().substring(6,10) + "." +
+new Date(Date.now()).toLocaleDateString().substring(3,5) + ".26" ,
+// new Date(Date.now()).toLocaleDateString().substring(0,2), 
 "_id": 0,
 } }
 
 data.map(obj => {
     index.index._id = obj.Number;
+    obj.Year = obj.Year.toString();
     fs.writeFileSync(filePath, JSON.stringify(index) + '\n', { flag: 'a' });
     fs.writeFileSync(filePath, JSON.stringify(obj) + '\n', { flag: 'a' });
 });
