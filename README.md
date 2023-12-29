@@ -40,7 +40,8 @@ https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregati
   * mappings https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html
   * brazilian https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-lang-analyzer.html#brazilian-analyzer
 
-```py
+
+```
 # GET /
 GET /_cat/indices
 GET /_cat/indices?v
@@ -290,8 +291,6 @@ POST /hits-2023.12.28/_search
 
 # Os 4 piláres de uma busca.
 POST /hits-2023.12.28/_search
-# Os 4 piláres de uma busca.
-POST /hits-2023.12.28/_search
 {
   "query": {
     "bool": {
@@ -342,5 +341,174 @@ POST /hits-2023.12.28/_search
       "minimum_should_match": 0
     }
   }
-}       
+}    
+
+DELETE /dio-experts
+
+# Configuração de Idioma
+# Configuração da tabela
+PUT /dio-experts
+{
+    "aliases": {},
+    "mappings": {
+      "properties": {
+        "content": {
+          "type": "text",
+          "analyzer": "rebuilt_brazilian"
+        }
+      }
+    },
+    "settings": {
+      "analysis": {
+        "filter": {
+          "brazilian_stemmer": {
+            "type": "stemmer",
+            "language": "brazilian"
+          },
+          "brazilian_keywords": {
+            "keywords": [
+              "exemplo"
+            ],
+            "type": "keyword_marker"
+          },
+          "brazilian_stop": {
+            "type": "stop",
+            "stopwords": "_brazilian_"
+          }
+        },
+        "analyzer": {
+          "rebuilt_brazilian": {
+            "filter": [
+              "lowercase",
+              "brazilian_stop",
+              "brazilian_keywords",
+              "brazilian_stemmer"
+            ],
+            "tokenizer": "standard"
+          }
+        }
+      }
+    }
+}
+
+
+
+POST /dio-experts/_doc/1
+{
+  "content" : "Vejo muito valor no aprendizado e no trabalho em equipe. Gosto de ser parte importante de um time e gosto de ter pessoas com quais eu possa adquirir mais conhecimento. Minha entrada na área de tecnologia pode ser relativamente tardia, mas acredito que eu possa agregar com a experiência que obtive durante minha atuação no mercado e em diferentes áreas."
+}
+
+GET /dio-experts/_search
+
+GET /dio-experts
+
+
+# ANALYZE
+
+
+GET /dio-experts/_analyze
+{
+  "analyzer": "rebuilt_brazilian",
+  "text": "Vejo muito valor no aprendizado e no trabalho em equipe. Gosto de ser parte importante de um time e gosto de ter pessoas com quais eu possa adquirir mais conhecimento. Minha entrada na área de tecnologia pode ser relativamente tardia, mas acredito que eu possa agregar com a experiência que obtive durante minha atuação no mercado e em diferentes áreas."
+}
+
+
+POST /dio-experts/_search
+{
+  "query": {
+    "match": {
+      "content": {
+        "query": "vej"
+      }
+    }
+  }
+}
+
+
+POST /teste-aggs/_doc
+{
+  "data" : "2020-04-04",
+  "numero" : 15,
+  "status": "active"
+}
+
+
+GET /teste-aggs/_mapping
+
+POST /teste-aggs/_search
+{
+  "size": 20
+}
+
+
+# Agregação, bom para gráficos
+POST /teste-aggs/_search
+{
+  "size": 2,
+  "from": 0,
+  "aggs": {
+    "perStatus": {
+      "terms": {
+        "field": "status.keyword",
+        "size": 10
+      }
+    },
+    "perDay": {
+      "date_histogram": {
+        "field": "data",
+        "calendar_interval": "day"
+      }
+    }
+  }
+}
+
+POST /teste-aggs/_search
+{
+  "size": 2,
+  "from": 0,
+  "aggs": {
+    "perStatus": {
+      "terms": {
+        "field": "status.keyword",
+        "size": 10
+      }
+    },
+    "perDay": {
+      "date_histogram": {
+        "field": "data",
+        "calendar_interval": "1w"
+      }
+    }
+  }
+}
+
+
+# Agregação sub-agregação
+POST /teste-aggs/_search
+{
+  "size": 2,
+  "from": 0,
+  "aggs": {
+    "perStatus": {
+      "terms": {
+        "field": "status.keyword",
+        "size": 10
+      }
+    },
+    "perDay": {
+      "date_histogram": {
+        "field": "data",
+        "calendar_interval": "1d"
+      },
+      "aggs": {
+        "perStatus": {
+          "terms": {
+            "field": "status.keyword",
+            "size": 10
+          }
+        }
+      }
+    }
+  }
+}
 ```
